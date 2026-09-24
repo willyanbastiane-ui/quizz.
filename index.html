@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SciQuiz Pro - Desafio de Ciências & Ranking</title>
+    <!-- Tailwind CSS CDN para estilização rápida, responsiva e moderna -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons para ícones vetorizados e limpos -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Fontes do Google (Inter & JetBrains Mono) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <!-- Configurações e extensão do Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#0f172a',
+                            card: '#1e293b',
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6',
+                            emerald: '#10b981',
+                            rose: '#f43f5e'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Estilos CSS Personalizados para animações e sombras neon -->
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a, #020617);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.25);
+        }
+
+        .glow-purple {
+            box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #06b6d4;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased flex flex-col justify-between min-h-screen">
+
+    <!-- Cabeçalho Fixo da Aplicação -->
+    <header class="border-b border-slate-800 bg-slate-950/70 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-xl shadow-lg glow-cyan">
+                    <i data-lucide="atom" class="w-6 h-6 text-white animate-spin" style="animation-duration: 15s;"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        SciQuiz Pro
+                    </h1>
+                    <p class="text-xs text-slate-400 font-mono">Desafio de Ciências Interativo</p>
+                </div>
+            </div>
+
+            <!-- Ações do Cabeçalho -->
+            <div class="flex items-center gap-2">
+                <button onclick="openRankingModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-all">
+                    <i data-lucide="trophy" class="w-4 h-4 text-amber-400"></i>
+                    <span>Ranking</span>
+                </button>
+                <button onclick="openGitHubModal()" class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-all">
+                    <i data-lucide="github" class="w-4 h-4 text-cyan-400"></i>
+                    <span class="hidden sm:inline">Como Publicar</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Conteúdo Principal Dinâmico -->
+    <main class="max-w-4xl w-full mx-auto px-4 py-8 flex-grow flex items-center justify-center">
+
+        <!-- TELA 1: Boas-vindas e Identificação do Jogador -->
+        <section id="screen-start" class="w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 sm:p-10 shadow-2xl animate-fade-in">
+            <div class="max-w-xl mx-auto text-center space-y-6">
+                <div class="inline-flex p-4 rounded-full bg-cyan-950/50 border border-cyan-500/30 text-cyan-400 mb-2">
+                    <i data-lucide="sparkles" class="w-10 h-10"></i>
+                </div>
+                <h2 class="text-3xl font-extrabold text-white">Quiz de Ciências</h2>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Teste seus conhecimentos em <strong>Física, Química, Biologia e Astronomia</strong>. Responda às 10 perguntas, confira as explicações detalhadas de cada resposta e suba no Ranking dos Melhores!
+                </p>
+
+                <!-- Input de Nome do Jogador -->
+                <div class="text-left space-y-2 pt-2">
+                    <label for="player-name" class="block text-xs font-mono font-semibold text-cyan-400 uppercase tracking-wider">
+                        Digite seu Nome ou Apelido:
+                    </label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-500">
+                            <i data-lucide="user" class="w-5 h-5"></i>
+                        </div>
+                        <input type="text" id="player-name" placeholder="Ex: Albert Einstein" maxlength="25"
+                            class="w-full pl-11 pr-4 py-3 bg-slate-950 border border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 text-white placeholder-slate-500 font-medium transition-all outline-none">
+                    </div>
+                </div>
+
+                <!-- Quadro de Regras -->
+                <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 text-left space-y-2">
+                    <h3 class="text-xs font-mono uppercase text-slate-400 font-semibold flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-purple-400"></i> Como Funciona:
+                    </h3>
+                    <ul class="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+                        <li>São <strong>10 questões essenciais</strong> de múltipla escolha.</li>
+                        <li>Feedback imediato com verde (Acerto) ou vermelho (Erro).</li>
+                        <li><strong>Explicação Comentada</strong> liberada logo após responder.</li>
+                        <li>Pontuação armazenada no Ranking Top 10 Local.</li>
+                    </ul>
+                </div>
+
+                <!-- Botão Iniciar -->
+                <button onclick="startQuiz()" class="w-full py-4 px-6 bg-gradient-to-r from-cyan-500 via-purple-600 to-pink-500 hover:opacity-95 text-white font-bold text-lg rounded-xl shadow-lg glow-purple transition-all flex items-center justify-center gap-2 group">
+                    <span>Iniciar Quiz de Ciências</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- TELA 2: Execução do Quiz -->
+        <section id="screen-quiz" class="w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-2xl hidden animate-fade-in">
+            
+            <!-- Barra Superior de Estatísticas -->
+            <div class="space-y-3 mb-6">
+                <div class="flex justify-between items-center text-xs font-mono">
+                    <span class="text-slate-400 flex items-center gap-1.5">
+                        <i data-lucide="help-circle" class="w-4 h-4 text-cyan-400"></i>
+                        Pergunta <strong id="question-number" class="text-white">1</strong> de <span id="total-questions-count">10</span>
+                    </span>
+                    <span id="quiz-category-tag" class="px-2.5 py-1 rounded-full bg-purple-950/60 border border-purple-500/30 text-purple-300 font-semibold">
+                        Ciências
+                    </span>
+                    <span class="text-slate-400 flex items-center gap-1">
+                        Pontuação: <strong id="current-score" class="text-cyan-400">0</strong>
+                    </span>
+                </div>
+
+                <!-- Barra de Progresso Visual -->
+                <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden p-0.5 border border-slate-800">
+                    <div id="progress-bar" class="bg-gradient-to-r from-cyan-500 to-purple-500 h-full rounded-full transition-all duration-300 w-0"></div>
+                </div>
+            </div>
+
+            <!-- Texto da Pergunta -->
+            <div class="mb-6">
+                <h3 id="question-text" class="text-lg sm:text-xl font-bold text-white leading-relaxed">
+                    Carregando pergunta...
+                </h3>
+            </div>
+
+            <!-- Opções de Resposta -->
+            <div id="options-container" class="space-y-3 mb-6">
+                <!-- Gerado Dinamicamente pelo JS -->
+            </div>
+
+            <!-- Explicação Comentada (Invisível até selecionar opção) -->
+            <div id="explanation-card" class="hidden mb-6 p-5 rounded-xl border transition-all animate-fade-in">
+                <div class="flex items-start gap-3">
+                    <div id="explanation-icon" class="p-2 rounded-lg mt-0.5"></div>
+                    <div class="space-y-1">
+                        <h4 id="explanation-title" class="font-bold text-sm uppercase tracking-wide">
+                            Explicação Científica
+                        </h4>
+                        <p id="explanation-text" class="text-xs sm:text-sm text-slate-200 leading-relaxed">
+                            A explicação da questão aparecerá aqui.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botão de Navegação -->
+            <div class="flex justify-end pt-2 border-t border-slate-800/80">
+                <button id="next-btn" disabled onclick="nextQuestion()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl border border-slate-700 transition-all flex items-center gap-2">
+                    <span>Próxima Pergunta</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- TELA 3: Resultado Final -->
+        <section id="screen-result" class="w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800 rounded-2xl p-6 sm:p-10 shadow-2xl hidden animate-fade-in">
+            <div class="max-w-md mx-auto text-center space-y-6">
+                
+                <div id="result-icon-box" class="inline-flex p-5 rounded-full bg-cyan-950/50 border border-cyan-500/30 text-cyan-400">
+                    <i data-lucide="award" class="w-12 h-12"></i>
+                </div>
+
+                <div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-1">Quiz Finalizado!</h2>
+                    <p id="result-player-greeting" class="text-slate-400 text-sm font-medium">Parabéns pelo empenho!</p>
+                </div>
+
+                <!-- Placar -->
+                <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 grid grid-cols-3 gap-3">
+                    <div class="space-y-1">
+                        <span class="text-xs text-slate-400 font-mono block">Acertos</span>
+                        <span id="res-correct" class="text-2xl font-black text-emerald-400">0</span>
+                    </div>
+                    <div class="space-y-1 border-x border-slate-800">
+                        <span class="text-xs text-slate-400 font-mono block">Erros</span>
+                        <span id="res-wrong" class="text-2xl font-black text-rose-400">0</span>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="text-xs text-slate-400 font-mono block">Aproveitamento</span>
+                        <span id="res-percent" class="text-2xl font-black text-cyan-400">0%</span>
+                    </div>
+                </div>
+
+                <div id="result-feedback-box" class="p-4 rounded-xl bg-purple-950/40 border border-purple-500/30 text-purple-200 text-xs sm:text-sm leading-relaxed">
+                    Mensagem de feedback motivacional...
+                </div>
+
+                <!-- Ações do Final -->
+                <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    <button onclick="restartQuiz()" class="flex-1 py-3 px-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold rounded-xl border border-slate-700 transition-all flex items-center justify-center gap-2 text-sm">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span>Jogar Novamente</span>
+                    </button>
+                    <button onclick="openRankingModal()" class="flex-1 py-3 px-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-xl shadow-md transition-all flex items-center justify-center gap-2 text-sm">
+                        <i data-lucide="trophy" class="w-4 h-4"></i>
+                        <span>Ver Ranking Completo</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL 1: Tabela de Ranking Top 10 -->
+    <div id="modal-ranking" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl animate-fade-in overflow-hidden">
+            
+            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i>
+                    <h3 class="font-bold text-lg text-white">Ranking Top 10 Jogadores</h3>
+                </div>
+                <button onclick="closeRankingModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-grow space-y-4">
+                <p class="text-xs text-slate-400">
+                    Pontuações armazenadas localmente no navegador. Jogue para garantir sua vaga entre os 10 melhores!
+                </p>
+
+                <div class="overflow-x-auto border border-slate-800 rounded-xl">
+                    <table class="w-full text-left text-xs sm:text-sm">
+                        <thead class="bg-slate-950 text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-800">
+                            <tr>
+                                <th class="py-3 px-4 text-center">Pos</th>
+                                <th class="py-3 px-4">Jogador</th>
+                                <th class="py-3 px-4 text-center">Acertos</th>
+                                <th class="py-3 px-4 text-right">Data/Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ranking-tbody" class="divide-y divide-slate-800/60 font-medium">
+                            <!-- Injetado dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div id="ranking-empty-msg" class="hidden text-center py-8 text-slate-500 text-sm">
+                    Ranking zerado no momento. Seja o primeiro a jogar e registrar seu nome!
+                </div>
+            </div>
+
+            <div class="px-6 py-3 border-t border-slate-800 bg-slate-950/50 flex justify-between items-center">
+                <button onclick="clearRanking()" class="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 hover:underline">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Resetar Ranking
+                </button>
+                <button onclick="closeRankingModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Instruções para Deploy no GitHub Pages -->
+    <div id="modal-github" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] flex flex-col shadow-2xl animate-fade-in overflow-hidden">
+            
+            <div class="px-6 py-4 border-b border-slate-800 flex justify-between items-center bg-slate-950/50">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="github" class="w-5 h-5 text-cyan-400"></i>
+                    <h3 class="font-bold text-lg text-white">Como publicar no GitHub Pages</h3>
+                </div>
+                <button onclick="closeGitHubModal()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-6 overflow-y-auto flex-grow space-y-4 text-xs sm:text-sm text-slate-300">
+                <p>Para disponibilizar este Quiz online gratuitamente para seus colegas, siga os passos abaixo:</p>
+
+                <ol class="space-y-3 list-decimal list-inside font-medium text-slate-200">
+                    <li class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <strong class="text-cyan-400">1. Salve este código:</strong><br>
+                        <span class="text-slate-400 text-xs">Crie um arquivo chamado exatamente <code>index.html</code> no seu computador e cole todo este código dentro dele.</span>
+                    </li>
+                    <li class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <strong class="text-cyan-400">2. Crie um Repositório no GitHub:</strong><br>
+                        <span class="text-slate-400 text-xs">Acesse seu GitHub, clique em <strong>New Repository</strong>, escolha um nome (ex: <code>quiz-ciencias</code>) e deixe o repositório como <strong>Public</strong>.</span>
+                    </li>
+                    <li class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <strong class="text-cyan-400">3. Envie o arquivo <code>index.html</code>:</strong><br>
+                        <span class="text-slate-400 text-xs">Clique no botão <strong>Upload files</strong> dentro do seu repositório no GitHub, arraste o arquivo <code>index.html</code> e confirme em <em>Commit changes</em>.</span>
+                    </li>
+                    <li class="p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <strong class="text-cyan-400">4. Ative o GitHub Pages:</strong><br>
+                        <span class="text-slate-400 text-xs">No repositório, vá em <strong>Settings</strong> > <strong>Pages</strong> (no menu esquerdo). Em <em>Build and deployment / Branch</em>, selecione <code>main</code> (ou <code>master</code>) e clique em <strong>Save</strong>.</span>
+                    </li>
+                </ol>
+
+                <div class="p-3 bg-purple-950/40 border border-purple-500/30 rounded-xl text-xs text-purple-200">
+                    💡 Em 1 a 2 minutos, o GitHub gerará um link público parecido com: <code>https://seu-usuario.github.io/quiz-ciencias/</code>
+                </div>
+            </div>
+
+            <div class="px-6 py-3 border-t border-slate-800 bg-slate-950/50 flex justify-end">
+                <button onclick="closeGitHubModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-semibold">
+                    Entendi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rodapé -->
+    <footer class="border-t border-slate-800/80 bg-slate-950/40 py-4 text-center text-xs text-slate-500 font-mono">
+        <p>SciQuiz Pro &bull; Desenvolvido para o Trabalho/Prova de Ciências</p>
+    </footer>
+
+    <script>
+        // ==========================================
+        // 1. BANCO DE DADOS DE PERGUNTAS (CIÊNCIAS)
+        // ==========================================
+        const questionsDatabase = [
+            {
+                category: "Astronomia",
+                question: "Qual é o planeta mais quente do Sistema Solar?",
+                options: ["Marte", "Mercúrio", "Vênus", "Júpiter"],
+                correctIndex: 2, // Vênus
+                explanation: "Apesar de Mercúrio estar mais próximo do Sol, Vênus possui uma atmosfera extremamente densa de dióxido de carbono que gera um intenso efeito estufa, elevando sua temperatura média para cerca de 465°C."
+            },
+            {
+                category: "Biologia",
+                question: "Qual organela celular é responsável pela produção de ATP (energia) na respiração celular?",
+                options: ["Complexo de Golgi", "Mitocôndria", "Ribossomo", "Lisossomo"],
+                correctIndex: 1, // Mitocôndria
+                explanation: "As mitocôndrias realizam a respiração celular aeróbica, transformando glicose e oxigênio em ATP (adenosina trifosfato), que fornece a energia para as atividades celulares."
+            },
+            {
+                category: "Química",
+                question: "Qual é o elemento químico mais abundante no universo observável?",
+                options: ["Oxigênio", "Hélio", "Hidrogênio", "Carbono"],
+                correctIndex: 2, // Hidrogênio
+                explanation: "O Hidrogênio representa cerca de 75% de toda a matéria visível do universo. É o elemento mais simples da tabela periódica (1 próton e 1 elétron) e serve de combustível inicial para as estrelas."
+            },
+            {
+                category: "Física",
+                question: "De acordo com a Primeira Lei de Newton (Inércia), o que acontece com um corpo em movimento se nenhuma força resultante atuar sobre ele?",
+                options: [
+                    "Ele para imediatamente",
+                    "Ele ganha velocidade constantemente",
+                    "Ele continua em movimento retilíneo uniforme",
+                    "Ele passa a se mover em círculos"
+                ],
+                correctIndex: 2,
+                explanation: "A Lei da Inércia afirma que um corpo em movimento tende a continuar se movendo em linha reta com velocidade constante (MRU), a menos que uma força externa altere seu estado."
+            },
+            {
+                category: "Biologia",
+                question: "Qual molécula armazena as instruções genéticas de desenvolvimento e funcionamento da maioria dos seres vivos?",
+                options: ["RNA", "DNA", "Proteína", "Lipídio"],
+                correctIndex: 1, // DNA
+                explanation: "O DNA (Ácido Desoxirribonucleico) é composto por cadeias de nucleotídeos em dupla hélice que contêm os genes responsáveis por carregar as informações hereditárias."
+            },
+            {
+                category: "Química",
+                question: "Uma solução com valor de pH igual a 3 a 25°C é classificada como:",
+                options: ["Neutra", "Básica ou Alcalina", "Ácida", "Inerte"],
+                correctIndex: 2, // Ácida
+                explanation: "A escala de pH varia de 0 a 14. Valores abaixo de 7 indicam soluções ácidas, 7 é neutro (como a água pura) e valores acima de 7 indicam soluções básicas/alcalinas."
+            },
+            {
+                category: "Astronomia",
+                question: "O que representa a unidade astronômica de medida chamada 'Ano-Luz'?",
+                options: [
+                    "O tempo que a Terra leva para dar uma volta ao redor do Sol",
+                    "A distância percorrida pela luz no vácuo no período de um ano",
+                    "A quantidade de luz emitida pelo Sol durante 365 dias",
+                    "O tempo total de vida estimado de uma estrela"
+                ],
+                correctIndex: 1,
+                explanation: "Apesar de ter 'ano' no nome, trata-se de uma unidade de distância. Como a velocidade da luz é de ~300.000 km/s, um ano-luz equivale a aproximadamente 9.46 trilhões de quilômetros."
+            },
+            {
+                category: "Física",
+                question: "Qual destas ondas NÃO necessita de um meio material para se propagar (podendo viajar no vácuo)?",
+                options: ["Onda Sonora", "Onda em uma Corda", "Onda Eletromagnética (Luz)", "Onda de Tsunami"],
+                correctIndex: 2,
+                explanation: "As ondas eletromagnéticas (luz visível, raio-X, rádio, ultravioleta) propagam-se através da oscilação de campos elétricos e magnéticos e não dependem de matéria, podendo se mover no vácuo do espaço."
+            },
+            {
+                category: "Biologia",
+                question: "Qual é o processo autotrófico realizado pelas plantas utilizando luz solar, água e gás carbônico?",
+                options: ["Fermentação", "Quimiossíntese", "Fotossíntese", "Transpiração"],
+                correctIndex: 2,
+                explanation: "Através da fotossíntese nos cloroplastos, as plantas captam a energia fotônica para converter dióxido de carbono e água em glicose (alimento) e liberam gás oxigênio na atmosfera."
+            },
+            {
+                category: "Química",
+                question: "Como se chama a mudança direta do estado Sólido para o estado Gasoso sem passar pelo estado líquido?",
+                options: ["Fusão", "Vaporização", "Sublimação", "Condensação"],
+                correctIndex: 2,
+                explanation: "A Sublimação ocorre quando uma substância passa diretamente do sólido para o gás. Exemplos comuns no cotidiano são o gelo seco (CO2 sólido) e as pedras de naftalina."
+            }
+        ];
+
+        // ==========================================
+        // 2. ESTADO DA APLICAÇÃO
+        // ==========================================
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let playerName = "";
+        let hasAnswered = false;
+
+        const RANKING_STORAGE_KEY = "sciquiz_ranking_data_v1";
+
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            document.getElementById('player-name').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') startQuiz();
+            });
+        });
+
+        // ==========================================
+        // 3. LÓGICA DO QUIZ
+        // ==========================================
+
+        function startQuiz() {
+            const nameInput = document.getElementById('player-name').value.trim();
+            if (!nameInput) {
+                alert("Por favor, digite seu nome ou apelido para começar!");
+                return;
+            }
+
+            playerName = nameInput;
+            currentQuestionIndex = 0;
+            score = 0;
+            hasAnswered = false;
+
+            document.getElementById('screen-start').classList.add('hidden');
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            hasAnswered = false;
+            const currentQ = questionsDatabase[currentQuestionIndex];
+            const total = questionsDatabase.length;
+
+            document.getElementById('question-number').innerText = currentQuestionIndex + 1;
+            document.getElementById('total-questions-count').innerText = total;
+            document.getElementById('quiz-category-tag').innerText = currentQ.category;
+            document.getElementById('current-score').innerText = score;
+
+            const progressPercent = ((currentQuestionIndex) / total) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            document.getElementById('question-text').innerText = currentQ.question;
+
+            // Oculta a explicação comentada e desabilita botão de avançar
+            document.getElementById('explanation-card').classList.add('hidden');
+            document.getElementById('next-btn').disabled = true;
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const letters = ['A', 'B', 'C', 'D'];
+
+            currentQ.options.forEach((optionText, index) => {
+                const btn = document.createElement('button');
+                btn.className = `w-full text-left p-4 rounded-xl border border-slate-800 bg-slate-950/60 hover:bg-slate-800/80 transition-all flex items-center gap-3 text-sm sm:text-base font-medium text-slate-200 group`;
+                btn.onclick = () => selectOption(index);
+                btn.id = `opt-btn-${index}`;
+
+                btn.innerHTML = `
+                    <span class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 font-mono font-bold flex items-center justify-center text-xs text-cyan-400 group-hover:border-cyan-500 transition-colors">
+                        ${letters[index]}
+                    </span>
+                    <span class="flex-grow">${optionText}</span>
+                    <span class="status-icon"></span>
+                `;
+
+                optionsContainer.appendChild(btn);
+            });
+
+            lucide.createIcons();
+        }
+
+        function selectOption(selectedIndex) {
+            if (hasAnswered) return;
+            hasAnswered = true;
+
+            const currentQ = questionsDatabase[currentQuestionIndex];
+            const isCorrect = selectedIndex === currentQ.correctIndex;
+
+            if (isCorrect) {
+                score++;
+                document.getElementById('current-score').innerText = score;
+            }
+
+            // Destaca alternativas (Verde = Certo | Vermelho = Errado selecionado)
+            currentQ.options.forEach((_, index) => {
+                const btn = document.getElementById(`opt-btn-${index}`);
+                btn.disabled = true;
+                btn.classList.remove('hover:bg-slate-800/80');
+
+                if (index === currentQ.correctIndex) {
+                    btn.classList.add('bg-emerald-950/80', 'border-emerald-500', 'text-emerald-200');
+                    btn.querySelector('.status-icon').innerHTML = `<i data-lucide="check-circle" class="w-5 h-5 text-emerald-400"></i>`;
+                } else if (index === selectedIndex && !isCorrect) {
+                    btn.classList.add('bg-rose-950/80', 'border-rose-500', 'text-rose-200');
+                    btn.querySelector('.status-icon').innerHTML = `<i data-lucide="x-circle" class="w-5 h-5 text-rose-400"></i>`;
+                } else {
+                    btn.classList.add('opacity-40');
+                }
+            });
+
+            // Exibe o Card com Explicação Comentada
+            const expCard = document.getElementById('explanation-card');
+            const expTitle = document.getElementById('explanation-title');
+            const expText = document.getElementById('explanation-text');
+            const expIcon = document.getElementById('explanation-icon');
+
+            expCard.classList.remove('hidden');
+
+            if (isCorrect) {
+                expCard.className = "mb-6 p-5 rounded-xl border bg-emerald-950/30 border-emerald-500/40 animate-fade-in";
+                expTitle.className = "font-bold text-sm uppercase tracking-wide text-emerald-400";
+                expTitle.innerText = "Resposta Correta!";
+                expIcon.className = "p-2 rounded-lg bg-emerald-900/50 text-emerald-400";
+                expIcon.innerHTML = `<i data-lucide="sparkles" class="w-5 h-5"></i>`;
+            } else {
+                expCard.className = "mb-6 p-5 rounded-xl border bg-rose-950/30 border-rose-500/40 animate-fade-in";
+                expTitle.className = "font-bold text-sm uppercase tracking-wide text-rose-400";
+                expTitle.innerText = "Resposta Incorreta";
+                expIcon.className = "p-2 rounded-lg bg-rose-900/50 text-rose-400";
+                expIcon.innerHTML = `<i data-lucide="alert-circle" class="w-5 h-5"></i>`;
+            }
+
+            expText.innerText = currentQ.explanation;
+            document.getElementById('next-btn').disabled = false;
+
+            lucide.createIcons();
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questionsDatabase.length) {
+                loadQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('screen-quiz').classList.add('hidden');
+            document.getElementById('screen-result').classList.remove('hidden');
+
+            const total = questionsDatabase.length;
+            const wrong = total - score;
+            const percent = Math.round((score / total) * 100);
+
+            document.getElementById('result-player-greeting').innerText = `Excelente participação, ${playerName}!`;
+            document.getElementById('res-correct').innerText = score;
+            document.getElementById('res-wrong').innerText = wrong;
+            document.getElementById('res-percent').innerText = `${percent}%`;
+
+            const feedbackBox = document.getElementById('result-feedback-box');
+            if (percent === 100) {
+                feedbackBox.innerHTML = "🌟 <strong>Perfeito!</strong> Você demonstrou domínio total em todas as áreas de ciências!";
+            } else if (percent >= 70) {
+                feedbackBox.innerHTML = "👏 <strong>Ótimo resultado!</strong> Você tem um conhecimento sólido sobre conceitos científicos.";
+            } else if (percent >= 50) {
+                feedbackBox.innerHTML = "👍 <strong>Bom desempenho!</strong> Revise as explicações comentadas para reforçar seu aprendizado.";
+            } else {
+                feedbackBox.innerHTML = "📚 <strong>Continue praticando!</strong> A ciência requer estudo constante. Tente mais uma vez!";
+            }
+
+            saveScoreToRanking(playerName, score, total);
+        }
+
+        function restartQuiz() {
+            document.getElementById('screen-result').classList.add('hidden');
+            document.getElementById('screen-start').classList.remove('hidden');
+        }
+
+        // ==========================================
+        // 4. LÓGICA DO RANKING (LOCALSTORAGE)
+        // ==========================================
+
+        function getRankingData() {
+            try {
+                const stored = localStorage.getItem(RANKING_STORAGE_KEY);
+                return stored ? JSON.parse(stored) : [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveScoreToRanking(name, scoreAchieved, totalQuestions) {
+            let ranking = getRankingData();
+
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+            const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+            const newEntry = {
+                id: Date.now(),
+                name: name,
+                score: scoreAchieved,
+                total: totalQuestions,
+                timestamp: `${dateStr} ${timeStr}`
+            };
+
+            ranking.push(newEntry);
+
+            // Ordena pela maior pontuação e mantêm até 10 registros
+            ranking.sort((a, b) => {
+                if (b.score !== a.score) return b.score - a.score;
+                return b.id - a.id;
+            });
+
+            ranking = ranking.slice(0, 10);
+
+            try {
+                localStorage.setItem(RANKING_STORAGE_KEY, JSON.stringify(ranking));
+            } catch (e) {
+                console.error("Erro ao guardar dados do ranking", e);
+            }
+        }
+
+        function renderRankingTable() {
+            const ranking = getRankingData();
+            const tbody = document.getElementById('ranking-tbody');
+            const emptyMsg = document.getElementById('ranking-empty-msg');
+
+            tbody.innerHTML = '';
+
+            if (ranking.length === 0) {
+                emptyMsg.classList.remove('hidden');
+                return;
+            } else {
+                emptyMsg.classList.add('hidden');
+            }
+
+            ranking.forEach((entry, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors";
+
+                let posBadge = `<span class="font-mono font-bold text-slate-400">#${idx + 1}</span>`;
+                if (idx === 0) posBadge = `<span class="text-amber-400 font-bold flex items-center justify-center gap-1"><i data-lucide="crown" class="w-4 h-4"></i> #1</span>`;
+                else if (idx === 1) posBadge = `<span class="text-slate-300 font-bold flex items-center justify-center gap-1">#2</span>`;
+                else if (idx === 2) posBadge = `<span class="text-amber-600 font-bold flex items-center justify-center gap-1">#3</span>`;
+
+                tr.innerHTML = `
+                    <td class="py-3 px-4 text-center">${posBadge}</td>
+                    <td class="py-3 px-4 font-semibold text-white">${escapeHtml(entry.name)}</td>
+                    <td class="py-3 px-4 text-center font-mono font-bold text-cyan-400">${entry.score} / ${entry.total}</td>
+                    <td class="py-3 px-4 text-right text-xs text-slate-400 font-mono">${entry.timestamp}</td>
+                `;
+
+                tbody.appendChild(tr);
+            });
+
+            lucide.createIcons();
+        }
+
+        function clearRanking() {
+            if (confirm("Deseja realmente apagar o ranking do quiz?")) {
+                localStorage.removeItem(RANKING_STORAGE_KEY);
+                renderRankingTable();
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.innerText = text;
+            return div.innerHTML;
+        }
+
+        // ==========================================
+        // 5. MODAIS
+        // ==========================================
+
+        function openRankingModal() {
+            renderRankingTable();
+            document.getElementById('modal-ranking').classList.remove('hidden');
+        }
+
+        function closeRankingModal() {
+            document.getElementById('modal-ranking').classList.add('hidden');
+        }
+
+        function openGitHubModal() {
+            document.getElementById('modal-github').classList.remove('hidden');
+        }
+
+        function closeGitHubModal() {
+            document.getElementById('modal-github').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
